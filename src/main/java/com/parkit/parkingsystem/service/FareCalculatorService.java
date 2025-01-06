@@ -3,6 +3,9 @@ package com.parkit.parkingsystem.service;
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class FareCalculatorService {
 
     public void calculateFare(Ticket ticket, boolean discount){
@@ -22,13 +25,17 @@ public class FareCalculatorService {
             return;
         }
 
+        Double roundedPrice = 0.00;
+
         switch (ticket.getParkingSpot().getParkingType()){
             case CAR: {
-                ticket.setPrice(decimalHours * Fare.CAR_RATE_PER_HOUR);
+                roundedPrice = roundPrice(decimalHours * Fare.CAR_RATE_PER_HOUR);
+                ticket.setPrice(roundedPrice);
                 break;
             }
             case BIKE: {
-                ticket.setPrice(decimalHours * Fare.BIKE_RATE_PER_HOUR);
+                roundedPrice = roundPrice(decimalHours * Fare.BIKE_RATE_PER_HOUR);
+                ticket.setPrice(roundedPrice);
                 break;
             }
             default: throw new IllegalArgumentException("Unkown Parking Type");
@@ -41,5 +48,14 @@ public class FareCalculatorService {
 
     public void calculateFare(Ticket ticket){
         calculateFare(ticket, false);
+    }
+
+    public double roundPrice(double price) {
+        BigDecimal bd = new BigDecimal(price);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        System.out.println("Prix originale : " + price);
+        System.out.println("String : " + bd.toString());
+        System.out.println("Double : " + bd.doubleValue());
+        return bd.doubleValue();
     }
 }
