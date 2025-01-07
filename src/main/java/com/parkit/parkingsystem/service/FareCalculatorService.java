@@ -25,7 +25,7 @@ public class FareCalculatorService {
             return;
         }
 
-        Double roundedPrice = 0.00;
+        double roundedPrice = 0.00;
 
         switch (ticket.getParkingSpot().getParkingType()){
             case CAR: {
@@ -43,6 +43,8 @@ public class FareCalculatorService {
 
         if (discount){
             ticket.setPrice(ticket.getPrice() - (ticket.getPrice() * ((double) 5 / 100)));
+            roundedPrice = roundPrice(ticket.getPrice() - (ticket.getPrice() * ((double) 5 / 100)));
+            ticket.setPrice(roundedPrice);
         }
     }
 
@@ -53,9 +55,7 @@ public class FareCalculatorService {
     public double roundPrice(double price) {
         BigDecimal bd = new BigDecimal(price);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
-        System.out.println("Prix originale : " + price);
-        System.out.println("String : " + bd.toString());
-        System.out.println("Double : " + bd.doubleValue());
+
         return bd.doubleValue();
     }
 }
