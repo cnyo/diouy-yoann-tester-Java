@@ -104,7 +104,8 @@ public class TicketDAO {
             logger.error("Error to count ticket",ex);
         }finally {
             dataBaseConfig.closeConnection(con);
-            return nbrTicket;
         }
+
+        return nbrTicket;
     }
 }
