@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -176,7 +177,7 @@ public class ParkingServiceTest {
 
     @Test
     @DisplayName("Successfully to retrieve an available parking space for a car")
-    public void getNextParkingNumberIfAvailableForCarReturnTrue(){
+    public void getNextParkingNumberIfAvailableForCarReturnTrue() throws SQLException, ClassNotFoundException {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
         when(inputReaderUtil.readSelection()).thenReturn(1);
 
@@ -186,7 +187,7 @@ public class ParkingServiceTest {
 
     @Test
     @DisplayName("Failing to retrieve an available parking space for a car")
-    public void getNextParkingNumberIfAvailableForCarReturnNull(){
+    public void getNextParkingNumberIfAvailableForCarReturnNull() throws SQLException, ClassNotFoundException {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
         when(inputReaderUtil.readSelection()).thenReturn(1);
 
@@ -196,7 +197,7 @@ public class ParkingServiceTest {
 
     @Test
     @DisplayName("Failing to retrieve an available parking space for a bike")
-    public void getNextParkingNumberIfAvailableForBikeReturnTrue(){
+    public void getNextParkingNumberIfAvailableForBikeReturnTrue() throws SQLException, ClassNotFoundException {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE)).thenReturn(1);
         when(inputReaderUtil.readSelection()).thenReturn(2);
 
