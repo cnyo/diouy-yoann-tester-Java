@@ -12,12 +12,10 @@ public class FareCalculatorService {
     private static final double DIGITAL_HOUR_FREE = 0.50;
 
     public void calculateFare(Ticket ticket, boolean discount){
-        if( (ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime())) ){
+
+        if (!isValidDate(ticket)) {
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }
-
-        long inHour = (long) ticket.getInTime().getTime();
-        long outHour = (long) ticket.getOutTime().getTime();
 
         long inTime = (long) ticket.getInTime().getTime();
         long outTime = (long) ticket.getOutTime().getTime();
@@ -51,6 +49,14 @@ public class FareCalculatorService {
             roundedPrice = roundPrice(ticket.getPrice() - (ticket.getPrice() * ((double) DISCOUNT_PERCENT / 100)));
             ticket.setPrice(roundedPrice);
         }
+    }
+
+    private boolean isValidDate(Ticket ticket) {
+        if( (ticket.getInTime() == null) || (ticket.getOutTime() == null) ){
+            return false;
+        }
+
+        return !ticket.getOutTime().before(ticket.getInTime());
     }
 
     public void calculateFare(Ticket ticket){
