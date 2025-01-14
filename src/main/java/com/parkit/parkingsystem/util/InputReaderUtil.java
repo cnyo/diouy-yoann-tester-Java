@@ -3,11 +3,13 @@ package com.parkit.parkingsystem.util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class InputReaderUtil {
 
-    private static Scanner scan = new Scanner(System.in);
+    private static final Scanner scan = new Scanner(new InputStreamReader(System.in, StandardCharsets.UTF_8));
     private static final Logger logger = LogManager.getLogger("InputReaderUtil");
 
     public int readSelection() {
@@ -34,6 +36,5 @@ public class InputReaderUtil {
             throw e;
         }
     }
-
 
 }

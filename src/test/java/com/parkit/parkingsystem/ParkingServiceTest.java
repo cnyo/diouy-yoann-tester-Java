@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(LoggingExtension.class)
 public class ParkingServiceTest {
 
-    private static ParkingService parkingService;
+    private ParkingService parkingService;
 
     @Mock
     private static InputReaderUtil inputReaderUtil;
@@ -135,23 +135,18 @@ public class ParkingServiceTest {
 
     @Test
     @DisplayName("Successfully handling the exit of a vehicle without a discount price")
-    public void processExitingVehicleWithoutDiscountTest(){
-        try {
-            Ticket ticket = newTicketForTest();
+    public void processExitingVehicleWithoutDiscountTest() throws Exception {
+        Ticket ticket = newTicketForTest();
 
-            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-            when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
-            when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-            when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
-            when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
 
-            parkingService.processExitingVehicle();
+        parkingService.processExitingVehicle();
 
-            verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw  new RuntimeException("Failed to set up test mock objects");
-        }
+        verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
     }
 
     @Test

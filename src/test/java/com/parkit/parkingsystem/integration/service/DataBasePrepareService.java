@@ -3,28 +3,28 @@ package com.parkit.parkingsystem.integration.service;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class DataBasePrepareService {
 
     DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
 
     public void clearDataBaseEntries(){
-        Connection connection = null;
-        try{
-            connection = dataBaseTestConfig.getConnection();
-
+        try (Connection connection = dataBaseTestConfig.getConnection();
+            PreparedStatement updateParkingPreparedStatement = connection.prepareStatement("update parking set available = true");
+            PreparedStatement truncateTicketPreparedStatement = connection.prepareStatement("truncate table ticket")) {
             //set parking entries to available
-            connection.prepareStatement("update parking set available = true").execute();
+            updateParkingPreparedStatement.execute();
 
             //clear ticket entries;
-            connection.prepareStatement("truncate table ticket").execute();
+            truncateTicketPreparedStatement.execute();
 
-        }catch(Exception e){
+        }catch(SQLException e){
             e.printStackTrace();
-        }finally {
-            dataBaseTestConfig.closeConnection(connection);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
-
 
 }
