@@ -5,7 +5,6 @@ import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
 import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
 import com.parkit.parkingsystem.model.Ticket;
-import com.parkit.parkingsystem.service.FareCalculatorService;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import org.junit.jupiter.api.*;
@@ -28,7 +27,6 @@ public class ParkingDataBaseIT {
     private static ParkingSpotDAO parkingSpotDAO;
     private static TicketDAO ticketDAO;
     private static DataBasePrepareService dataBasePrepareService;
-    private static FareCalculatorService fareCalculatorService;
 
     @Mock
     private static InputReaderUtil inputReaderUtil;
@@ -40,7 +38,6 @@ public class ParkingDataBaseIT {
         ticketDAO = new TicketDAO();
         ticketDAO.dataBaseConfig = dataBaseTestConfig;
         dataBasePrepareService = new DataBasePrepareService();
-        fareCalculatorService = new FareCalculatorService();
     }
 
     @BeforeEach
@@ -71,17 +68,17 @@ public class ParkingDataBaseIT {
     @DisplayName("Check that the fare generated and out time are populated correctly in the database")
     public void testParkingLotExit(){
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+
         parkingService.processIncomingVehicle();
+        Ticket ticket = ticketDAO.getTicket("ABCDEF");
+        // 60 minutes parking time should give 3/4th parking fare
+        long inIme = (System.currentTimeMillis() - (60 * 60 * 1000));
+        Date inDate = new Date(inIme);
+        ticket.setInTime(inDate);
+        ticketDAO.updateTicketForTest(ticket);
         parkingService.processExitingVehicle();
 
-        // Set outTime et calculate price to 1 hour
-        Ticket ticket = ticketDAO.getTicket("ABCDEF");
-        long outIme = (System.currentTimeMillis() + (60 * 60 * 1000));
-        Date outDate = new Date(outIme);
-        ticket.setOutTime(outDate);
-
-        fareCalculatorService.calculateFare(ticket);
-        ticketDAO.updateTicket(ticket);
+        ticket = ticketDAO.getTicket("ABCDEF");
 
         assertThat(ticket.getPrice()).isNotEqualTo(0.0);
         assertThat(ticket.getOutTime()).isNotNull();
@@ -91,23 +88,28 @@ public class ParkingDataBaseIT {
     @DisplayName("Check the calculation of the price of a ticket in the case of a recurring user")
     public void testParkingLotExitRecurringUser(){
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+
+        // First entrance
         parkingService.processIncomingVehicle();
+        Ticket firstTicket = ticketDAO.getTicket("ABCDEF");
+        // 120 minutes parking time should give 3/4th parking fare
+        Date inDate = new Date((System.currentTimeMillis() - (60 * 60 * 1000)));
+        firstTicket.setInTime(inDate);
+        ticketDAO.updateTicketForTest(firstTicket);
         parkingService.processExitingVehicle();
+        firstTicket = ticketDAO.getTicket("ABCDEF");
 
-        // Set outTime et calculate price to 1 hour
-        Ticket ticket = ticketDAO.getTicket("ABCDEF");
-        long outIme = (System.currentTimeMillis() + (60 * 60 * 1000));
-        Date outDate = new Date(outIme);
-        ticket.setOutTime(outDate);
+        // 2nd entrance
+        parkingService.processIncomingVehicle();
+        Ticket secondTicket = ticketDAO.getTicket("ABCDEF");
+        // 60 minutes parking time should give 3/4th parking fare
+        inDate = new Date((System.currentTimeMillis() - (60 * 60 * 1000)));
+        secondTicket.setInTime(inDate);
+        ticketDAO.updateTicketForTest(secondTicket);
+        parkingService.processExitingVehicle();
+        secondTicket = ticketDAO.getTicket("ABCDEF");
 
-        fareCalculatorService.calculateFare(ticket);
-        double withoutDiscountPrice = ticket.getPrice();
-        fareCalculatorService.calculateFare(ticket, true);
-        double discountPrice = ticket.getPrice();
-
-        ticketDAO.updateTicket(ticket);
-
-        assertThat(withoutDiscountPrice).isGreaterThan(discountPrice);
+        assertThat(firstTicket.getPrice()).isGreaterThan(secondTicket.getPrice());
     }
 
 }

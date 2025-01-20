@@ -50,7 +50,7 @@ public class ParkingSpotDAO {
             logger.error("Error updating parking info",ex);
             return false;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 

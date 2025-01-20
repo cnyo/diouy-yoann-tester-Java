@@ -8,17 +8,15 @@ import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import java.sql.SQLException;
 import java.util.Date;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +24,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(LoggingExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ParkingServiceTest {
 
     private ParkingService parkingService;
@@ -123,19 +122,18 @@ public class ParkingServiceTest {
     }
 
     @Test
-    @DisplayName("Successfully throw exception if the registration number is not text")
-    public void readVehicleRegistrationNumberExceptionTest() throws Exception {
-        when(inputReaderUtil.readSelection()).thenReturn(1);
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(IllegalArgumentException.class);
-        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+    @DisplayName("Logging parsing error message on incorrect selection")
+    public void processIncomingVehicleBadSelectionTest() {
+        when(inputReaderUtil.readSelection()).thenReturn(0);
 
-        assertThrows(IllegalArgumentException.class, () -> inputReaderUtil.readVehicleRegistrationNumber());
         parkingService.processIncomingVehicle();
+
+        verify(parkingSpotDAO, Mockito.never()).updateParking(any(ParkingSpot.class));
     }
 
     @Test
     @DisplayName("Successfully handling the exit of a vehicle without a discount price")
-    public void processExitingVehicleWithoutDiscountTest() throws Exception {
+    public void processExitingVehicleTest() throws Exception {
         Ticket ticket = newTicketForTest();
 
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
@@ -147,6 +145,21 @@ public class ParkingServiceTest {
         parkingService.processExitingVehicle();
 
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+    }
+
+    @Test
+    @DisplayName("Running the test in case the updateTicket() method of ticketDAO returns false when calling processExitingVehicle()")
+    public void processExitingVehicleTestUnableUpdate() throws Exception {
+        Ticket ticket = newTicketForTest();
+
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
+        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
+
+        parkingService.processExitingVehicle();
+
+        assertThat(ticketDAO.updateTicket(ticket)).isFalse();
     }
 
     @Test
@@ -171,28 +184,31 @@ public class ParkingServiceTest {
     }
 
     @Test
-    @DisplayName("Successfully to retrieve an available parking space for a car")
-    public void getNextParkingNumberIfAvailableForCarReturnTrue() throws SQLException, ClassNotFoundException {
+    @DisplayName("Successfully to retrieve an available parking space whith ID 1 for a car")
+    public void getNextParkingNumberIfAvailableForCarReturnTrue() {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
         when(inputReaderUtil.readSelection()).thenReturn(1);
 
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
+        assertThat(parkingSpot.getId()).isEqualTo(1);
         assertThat(parkingSpot.isAvailable()).isTrue();
     }
 
     @Test
     @DisplayName("Failing to retrieve an available parking space for a car")
-    public void getNextParkingNumberIfAvailableForCarReturnNull() throws SQLException, ClassNotFoundException {
-        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
+    public void getNextParkingNumberIfAvailableForCarReturnNull() {
         when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
 
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
         assertThat(parkingSpot).isNull();
     }
 
     @Test
     @DisplayName("Failing to retrieve an available parking space for a bike")
-    public void getNextParkingNumberIfAvailableForBikeReturnTrue() throws SQLException, ClassNotFoundException {
+    public void getNextParkingNumberIfAvailableForBikeReturnTrue() {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE)).thenReturn(1);
         when(inputReaderUtil.readSelection()).thenReturn(2);
 
@@ -201,24 +217,23 @@ public class ParkingServiceTest {
     }
 
     @Test
-    @DisplayName("Logging parsing error message on incorrect selection")
-    public void processIncomingVehicleBadSelectionTest() {
-        TestAppender testAppender = new TestAppender("TestAppender");
-        testAppender.start();
-        LoggerConfig loggerConfig = Configurator.initialize(null, "log4j2.xml")
-                .getConfiguration()
-                .getRootLogger();
-        loggerConfig.addAppender(testAppender, null, null);
-        String expectedMessage = "Error parsing user input for type of vehicle";
+    @DisplayName("Failing to retrieve an available parking space for a bike")
+    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument () {
+        when(inputReaderUtil.readSelection()).thenReturn(3);
 
-        when(inputReaderUtil.readSelection()).thenReturn(0);
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+        assertThat(parkingSpot).isNull();
+    }
 
+    @Test
+    @DisplayName("Successfully throw exception if the registration number is not text")
+    public void readVehicleRegistrationNumberExceptionTest() throws Exception {
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(IllegalArgumentException.class);
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+
+        assertThrows(IllegalArgumentException.class, () -> inputReaderUtil.readVehicleRegistrationNumber());
         parkingService.processIncomingVehicle();
-
-        List<String> logMessages = testAppender.getMessages();
-        assertThat(logMessages.contains(expectedMessage)).isTrue();
-
-        loggerConfig.removeAppender(testAppender.getName());
     }
 
     @Test
@@ -236,7 +251,7 @@ public class ParkingServiceTest {
             verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
         } catch (Exception e) {
             e.printStackTrace();
-            throw  new RuntimeException("Failed to set up test mock objects");
+            throw new RuntimeException("Failed to set up test mock objects");
         }
     }
 

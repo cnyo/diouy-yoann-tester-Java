@@ -114,10 +114,15 @@ public class ParkingService {
 
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
-                parkingSpot.setAvailable(true);
-                parkingSpotDAO.updateParking(parkingSpot);
-                System.out.println("Please pay the parking fare:" + ticket.getPrice());
-                System.out.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
+
+                if (parkingSpot != null && parkingSpot.getId() > 0){
+                    parkingSpot.setAvailable(true);
+                    parkingSpotDAO.updateParking(parkingSpot);
+                    System.out.println("Please pay the parking fare:" + ticket.getPrice());
+                    System.out.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
+                } else {
+                    logger.info("Unable to update ticket information. No parking spots available");
+                }
             }else{
                 System.out.println("Unable to update ticket information. Error occurred");
                 logger.info("Unable to update ticket information. Error occurred");
