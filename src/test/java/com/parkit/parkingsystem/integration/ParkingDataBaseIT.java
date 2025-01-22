@@ -75,7 +75,7 @@ public class ParkingDataBaseIT {
         long inIme = (System.currentTimeMillis() - (60 * 60 * 1000));
         Date inDate = new Date(inIme);
         ticket.setInTime(inDate);
-        ticketDAO.updateTicketForTest(ticket);
+        dataBasePrepareService.updateTicket(ticket);
         parkingService.processExitingVehicle();
 
         ticket = ticketDAO.getTicket("ABCDEF");
@@ -95,7 +95,8 @@ public class ParkingDataBaseIT {
         // 120 minutes parking time should give 3/4th parking fare
         Date inDate = new Date((System.currentTimeMillis() - (60 * 60 * 1000)));
         firstTicket.setInTime(inDate);
-        ticketDAO.updateTicketForTest(firstTicket);
+        dataBasePrepareService.updateTicket(firstTicket);
+
         parkingService.processExitingVehicle();
         firstTicket = ticketDAO.getTicket("ABCDEF");
 
@@ -105,7 +106,7 @@ public class ParkingDataBaseIT {
         // 60 minutes parking time should give 3/4th parking fare
         inDate = new Date((System.currentTimeMillis() - (60 * 60 * 1000)));
         secondTicket.setInTime(inDate);
-        ticketDAO.updateTicketForTest(secondTicket);
+        dataBasePrepareService.updateTicket(secondTicket);
         parkingService.processExitingVehicle();
         secondTicket = ticketDAO.getTicket("ABCDEF");
 

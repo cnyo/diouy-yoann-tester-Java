@@ -79,22 +79,6 @@ public class TicketDAO {
         return false;
     }
 
-    public boolean updateTicketForTest(Ticket ticket) {
-        try (Connection con = dataBaseConfig.getConnection();
-             PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET_FOR_TEST)) {
-            ps.setTimestamp(1, new Timestamp(ticket.getInTime().getTime()));
-            ps.setInt(2,ticket.getId());
-            ps.execute();
-            return true;
-        }catch (SQLException ex){
-            logger.error("Error saving ticket info",ex);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        return false;
-    }
-
     public int getNbTicket(String vehicleRegNumber) {
         int nbrTicket = 0;
 

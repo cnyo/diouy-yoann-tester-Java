@@ -51,16 +51,16 @@ public class FareCalculatorService {
         }
     }
 
+    public void calculateFare(Ticket ticket){
+        calculateFare(ticket, false);
+    }
+
     private boolean isValidDate(Ticket ticket) {
         if( (ticket.getInTime() == null) || (ticket.getOutTime() == null) ){
             return false;
         }
 
         return !ticket.getOutTime().before(ticket.getInTime());
-    }
-
-    public void calculateFare(Ticket ticket){
-        calculateFare(ticket, false);
     }
 
     public double roundPrice(double price) {
