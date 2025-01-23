@@ -96,7 +96,6 @@ public class ParkingDataBaseIT {
         Date inDate = new Date((System.currentTimeMillis() - (60 * 60 * 1000)));
         firstTicket.setInTime(inDate);
         dataBasePrepareService.updateTicket(firstTicket);
-
         parkingService.processExitingVehicle();
         firstTicket = ticketDAO.getTicket("ABCDEF");
 
