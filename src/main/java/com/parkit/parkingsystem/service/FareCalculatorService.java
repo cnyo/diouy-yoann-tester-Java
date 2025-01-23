@@ -46,7 +46,7 @@ public class FareCalculatorService {
         }
 
         if (discount){
-            roundedPrice = roundPrice(ticket.getPrice() - (ticket.getPrice() * ((double) DISCOUNT_PERCENT / 100)));
+            roundedPrice = roundPrice(applyPercentageDiscount(ticket.getPrice()));
             ticket.setPrice(roundedPrice);
         }
     }
@@ -68,5 +68,9 @@ public class FareCalculatorService {
         bd = bd.setScale(2, RoundingMode.HALF_UP);
 
         return bd.doubleValue();
+    }
+
+    private double applyPercentageDiscount(double price) {
+        return price * (1 - (double) DISCOUNT_PERCENT / 100);
     }
 }

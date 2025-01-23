@@ -200,7 +200,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket, true);
 
         assertEquals(
-                fareCalculatorService.roundPrice((1 * Fare.CAR_RATE_PER_HOUR) - ((1 * Fare.CAR_RATE_PER_HOUR) * ((double) 5 / 100))),
+                fareCalculatorService.roundPrice(Fare.CAR_RATE_PER_HOUR * (1 - (double) 5 / 100)),
                 ticket.getPrice()
         );
     }
@@ -220,7 +220,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket, true);
 
         assertEquals(
-                (1 * Fare.BIKE_RATE_PER_HOUR) - (((double) 5 / 100)),
+                Fare.BIKE_RATE_PER_HOUR * (1 - (double) 5 / 100),
                 ticket.getPrice()
         );
     }
